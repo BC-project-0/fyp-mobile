@@ -43,6 +43,12 @@
         {
           "faceIDPermission": "Allow FYP to access your Face ID biometric data."
         }
+      ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Development"
+        }
       ]
     ],
     "experiments": {

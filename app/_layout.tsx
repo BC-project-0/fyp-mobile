@@ -56,7 +56,7 @@ function RootLayoutNav() {
 
   useEffect(() => {
     if (isLoggedIn) {
-      router.replace("/home/")
+      router.replace("/home/generate")
     } else {
       router.replace("/(auth)/login")
     }

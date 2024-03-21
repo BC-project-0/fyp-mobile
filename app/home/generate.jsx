@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import usePhoneStore from "../../store/store"
-import { Stack, useRouter } from "expo-router"
+import { useRouter } from "expo-router"
 import { ActivityIndicator, Alert, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import * as SecureStore from "expo-secure-store"
 import * as FileSystem from "expo-file-system"
@@ -8,12 +8,16 @@ import * as Sharing from 'expo-sharing'
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { comput_commitment, generate_signature } from "../../utils/crypto"
 import { pem, pubKey } from "../../utils/temp";
+import axios from "axios";
+import { Picker } from "@react-native-picker/picker"
 
 const Home = () => {
 
     const router = useRouter();
     const isLoggedIn = usePhoneStore((state) => state.isLoggedIn);
-    const logout = usePhoneStore((state) => state.logout);
+    const ip = usePhoneStore((state) => state.ip)
+    const [files, setFiles] = useState([]);
+    const [selectedFile, setSelectedFile] = useState("")
 
     const [isOTPGenerated, setIsOTPGenerated] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +28,21 @@ const Home = () => {
             router.replace("/(auth)/login")
         }
     }, [])
+
+    useEffect(() => {
+        const loadFiles = async () => {
+            const unique_id = await AsyncStorage.getItem("user")
+            axios.get(`http://${ip}/${unique_id}/files`)
+                .then((data) => {
+                    setFiles(data.data)
+                })
+                .catch((err) => {
+                    console.log(err);
+                    setFiles([])
+                })
+        }
+        loadFiles();
+    }, [ip])
 
     async function generateOTP() {
 
@@ -36,7 +55,7 @@ const Home = () => {
         // const sk = SecureStore.getItemAsync("privateKey");
         // const pk = SecureStore.getItemAsync("publicKey");
 
-        if (!id || !i || !password) {
+        if (!id || !i || !password || !selectedFile) {
             Alert.alert("Failure", "Failed to load values");
             isLoading(false);
             return;
@@ -55,7 +74,9 @@ const Home = () => {
         json["i"] = index;
         json["signature"] = signature;
         json["pk"] = pubKey;
+        json["file"] = selectedFile
 
+        console.log(selectedFile)
 
         const jsonString = JSON.stringify(json);
 
@@ -94,6 +115,15 @@ const Home = () => {
                         : (<ActivityIndicator color={"#FFFFFF"} size={"small"} />)
                     }
                 </Pressable>
+                <Picker
+                    selectedValue={selectedFile}
+                    onValueChange={(itemValue, index) => setSelectedFile(itemValue)}
+                    style={styles.select}
+                >
+                    {files.map((data, index) => (
+                        <Picker.Item label={data} value={data} key={index} />
+                    ))}
+                </Picker>
                 {isOTPGenerated && !isLoading && (
                     <View >
                         <Text>New OTP Generated. ID - {id}</Text>
@@ -102,9 +132,6 @@ const Home = () => {
                         </Pressable>
                     </View>
                 )}
-                <Pressable onPress={logout} style={styles.shareBtn}>
-                    <Text style={styles.text}>Logout</Text>
-                </Pressable>
             </View>
         </SafeAreaView>
     )
@@ -152,6 +179,28 @@ const styles = StyleSheet.create({
         letterSpacing: 0.25,
         color: 'white',
     },
+    inputCtn: {
+        paddingVertical: 4,
+        paddingHorizontal: 4,
+        borderColor: "black",
+        margin: "auto",
+        height: 50,
+        width: "75%",
+        borderWidth: 2,
+        marginVertical: 5,
+        borderRadius: 5
+    },
+    select: {
+        paddingVertical: 4,
+        paddingHorizontal: 4,
+        borderColor: "black",
+        margin: "auto",
+        height: 50,
+        width: "75%",
+        borderWidth: 2,
+        marginVertical: 5,
+        borderRadius: 5
+    }
 })
 
 export default Home
