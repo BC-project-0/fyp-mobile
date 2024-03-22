@@ -16,9 +16,12 @@ function fileUpload() {
         if (result.canceled) {
             return
         }
+        if (result.assets[0].size > 2000000) {
+            Alert.alert("Failure", "Max. File size is 2MB")
+            return
+        }
         setFilename(result.assets[0].name)
-        const file = await FileSystem.readAsStringAsync(result.assets[0].uri)
-        setFile(file)
+        setFile(result.assets[0])
     }
 
     async function uploadFile() {
@@ -31,10 +34,17 @@ function fileUpload() {
             const id = await AsyncStorage.getItem('user');
             let formData = new FormData();
             formData.append("id", id);
-            formData.append("file", file);
 
+            var data = {
+                name: file.name,
+                size: file.size,
+                uri: file.uri,
+                type: file.mimeType
+            }
+            formData.append("file", data);
             const result = await axios.post(`http://${ip}/upload`, formData, {
                 headers: {
+                    Accept: 'application/json',
                     'Content-Type': 'multipart/form-data'
                 }
             })
