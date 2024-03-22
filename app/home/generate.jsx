@@ -76,15 +76,13 @@ const Home = () => {
         json["pk"] = pubKey;
         json["file"] = selectedFile
 
-        console.log(selectedFile)
-
         const jsonString = JSON.stringify(json);
 
         const newIndex = index + 1;
         await SecureStore.setItemAsync("counter", newIndex.toString())
 
         // Save to a temporary file
-        const tempFilePath = FileSystem.documentDirectory + "FYP.txt";
+        const tempFilePath = FileSystem.documentDirectory + "OTP.txt";
         await FileSystem.writeAsStringAsync(tempFilePath, jsonString, { encoding: FileSystem.EncodingType.UTF8 });
 
         setID(index)
@@ -102,7 +100,7 @@ const Home = () => {
             Alert.alert("Failure", "Cannot Share");
         }
 
-        const tempFilePath = FileSystem.documentDirectory + "FYP.txt";
+        const tempFilePath = FileSystem.documentDirectory + "OTP.txt";
         Sharing.shareAsync(tempFilePath)
     }
 
